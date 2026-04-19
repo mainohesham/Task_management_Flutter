@@ -25,6 +25,15 @@ class TaskScreen extends StatefulWidget {
 class _TaskScreenState extends State<TaskScreen> {
   int _currentIndex = 1; // ✅ starts at Add Task
 
+  //add this to fix problem of why you see last user's tasks
+  @override
+  @override
+  void initState() {
+    super.initState();
+    print('🟡 TaskScreen initState — userId: ${widget.userId}');
+    context.read<TaskCubit>().loadTasks(widget.userId);
+  }
+
   void _showBottomSheet(BuildContext context, {Task? task}) {
     showModalBottomSheet(
       context: context,

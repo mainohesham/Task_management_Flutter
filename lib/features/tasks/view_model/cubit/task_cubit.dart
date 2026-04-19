@@ -8,7 +8,7 @@ class TaskCubit extends Cubit<TaskState> {
 
   TaskCubit(this._repository) : super(TaskInitial());
 
-  Future<void> loadTasks(int userId) async {
+ /* Future<void> loadTasks(int userId) async {
     emit(TaskLoading());
     try {
       final tasks = await _repository.getTasks(userId);
@@ -20,6 +20,25 @@ class TaskCubit extends Cubit<TaskState> {
       }
 
     } catch (e) {
+      emit(TaskFailure(e.toString()));
+    }
+  }*/
+  Future<void> loadTasks(int userId) async {
+    print('🔵 loadTasks called with userId: $userId');
+    emit(TaskLoading());
+    try {
+      final tasks = await _repository.getTasks(userId);
+      print('✅ tasks found: ${tasks.length}');
+      for (var t in tasks) {
+        print('   → task: ${t.title}, userId: ${t.userId}');
+      }
+      if (tasks.isEmpty) {
+        emit(TaskEmpty());
+      } else {
+        emit(TaskLoaded(tasks));
+      }
+    } catch (e) {
+      print('❌ error: $e');
       emit(TaskFailure(e.toString()));
     }
   }
@@ -61,4 +80,6 @@ class TaskCubit extends Cubit<TaskState> {
       emit(TaskFailure(e.toString()));
     }
   }
+
+
 }

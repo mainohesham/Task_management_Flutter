@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-
-
 import '../../../features/welcome_page/view/screens/welcome_page.dart';
 import '../../constants/app_colors.dart';
 

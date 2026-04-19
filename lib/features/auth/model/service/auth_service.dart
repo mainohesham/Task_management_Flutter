@@ -61,7 +61,7 @@ class AuthService {
     final map = user.toMap();
     map.remove('id');
 
-    final id = await db.insert('users', user.toMap());
+    final id = await db.insert('users',map);
     return user.copyWith(id: id);
   }
 
