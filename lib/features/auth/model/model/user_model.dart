@@ -21,7 +21,7 @@ class User {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
+
       'fullName': fullName,
       'gender': gender,
       'email': email,
@@ -69,7 +69,7 @@ class User {
   //for api
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'],
+      id: json['id'] ?? json['idd'],
       fullName: json['full_name'],
       gender: json['gender'],
       email: json['email'],

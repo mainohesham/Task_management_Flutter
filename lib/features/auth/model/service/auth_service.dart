@@ -47,7 +47,6 @@ class AuthService {
   Future<User> signUp(User user) async {
     final db = await database;
 
-    // check if email exists
     final existing = await db.query(
       'users',
       where: 'email = ?',
@@ -58,10 +57,8 @@ class AuthService {
       throw Exception("Email already exists");
     }
 
-    final map = user.toMap();
-    map.remove('id');
-
-    final id = await db.insert('users',map);
+    // ✅ no need for map.remove('id') anymore
+    final id = await db.insert('users', user.toMap());
     return user.copyWith(id: id);
   }
 
@@ -97,12 +94,33 @@ class AuthService {
 // Update user
   Future<User> updateUser(User user) async {
     final db = await database;
-    await db.update(
+
+    // ✅ Check if user exists locally first
+    final existing = await db.query(
       'users',
-      user.toMap(),
       where: 'id = ?',
       whereArgs: [user.id],
     );
+
+    final map = user.toMap();
+    map.remove('id');
+
+    if (existing.isEmpty) {
+      // ✅ User doesn't exist locally → insert instead
+      await db.insert(
+        'users',
+        map,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    } else {
+      // ✅ User exists → update
+      await db.update(
+        'users',
+        map,
+        where: 'id = ?',
+        whereArgs: [user.id],
+      );
+    }
     return user;
   }
 }

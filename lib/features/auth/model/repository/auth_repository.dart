@@ -9,11 +9,19 @@ class AuthRepository {
   AuthRepository(this._localService, this._apiService);
 
   Future<User> signUp(User user) async {
-    // 1️⃣ Register on backend
-    final apiUser = await _apiService.signUp(user);
-    // 2️⃣ Cache locally
-    await _localService.signUp(apiUser);
-    return apiUser;
+    try {
+      // 1️⃣ Register on backend
+      final apiUser = await _apiService.signUp(user);
+      // 2️⃣ Cache locally — wrap in try/catch so it doesn't stop flow
+      try {
+        await _localService.signUp(apiUser);
+      } catch (_) {
+        // ignore if already exists locally
+      }
+      return apiUser; // ← always return apiUser
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<User> login(String email, String password) async {
@@ -28,13 +36,18 @@ class AuthRepository {
 
   Future<User> getUserById(int userId) async {
     try {
-      // 1️⃣ Try API first → fresh data
       final apiUser = await _apiService.getProfile(userId);
-      // 2️⃣ Sync to local
-      await _localService.updateUser(apiUser);
+      // ✅ ignore local sync errors
+      try {
+        await _localService.updateUser(apiUser);
+      } catch (_) {
+        try {
+          await _localService.signUp(apiUser);
+        } catch (_) {}
+      }
       return apiUser;
-    } catch (_) {
-      // 3️⃣ Offline fallback
+    } catch (e) {
+      print('❌ API failed → local fallback: $e');
       return _localService.getUserById(userId);
     }
   }
@@ -42,16 +55,24 @@ class AuthRepository {
   Future<User> updateUser(User user) async {
     // 1️⃣ Update on backend
     final updatedUser = await _apiService.updateProfile(user);
-    // 2️⃣ Sync to local
-    await _localService.updateUser(updatedUser);
+    // 2️⃣ Try sync to local — ignore if fails
+    try {
+      await _localService.updateUser(updatedUser);
+    } catch (e) {
+      print('⚠️ Local sync failed (ignored): $e');
+    }
     return updatedUser;
   }
 
   Future<User> updateProfilePhoto(int userId, String imagePath) async {
     // 1️⃣ Send to backend
     final updatedUser = await _apiService.updateProfilePhoto(userId, imagePath);
-    // 2️⃣ Sync to local
-    await _localService.updateUser(updatedUser);
+    // 2️⃣ Try sync to local — ignore if fails
+    try {
+      await _localService.updateUser(updatedUser);
+    } catch (e) {
+      print('⚠️ Local sync failed (ignored): $e');
+    }
     return updatedUser;
   }
 

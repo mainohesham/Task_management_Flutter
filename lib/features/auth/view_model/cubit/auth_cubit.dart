@@ -12,8 +12,10 @@ class AuthCubit extends Cubit<AuthState> {
     emit(AuthLoading());
     try {
       final newUser = await _repo.signUp(user);
+      print('✅ CUBIT signUp success: ${newUser.id}'); // ← ADD
       emit(AuthAuthenticated(newUser));
     } catch (e) {
+      print('❌ CUBIT signUp error: $e'); // ← ADD
       final msg = e.toString().replaceFirst("Exception: ", "");
       emit(AuthFailure(msg));
     }

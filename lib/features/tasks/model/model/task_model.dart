@@ -68,9 +68,10 @@ class Task {
       title: json['title'],
       description: json['description'],
       dueDate: DateTime.parse(json['due_date']),
-      priority: json['priority'],
+      // ✅ handle backend typo 'priiority'
+      priority: json['priority'] ?? json['priiority'] ?? 'Medium',
       isCompleted: json['is_completed'] == true || json['is_completed'] == 1,
-      userId: json['user_id'],
+      userId: json['user_id'] ?? 0,
     );
   }
 

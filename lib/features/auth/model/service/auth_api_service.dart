@@ -16,9 +16,25 @@ class AuthApiService {
           'email': user.email,
           'password': user.password,
           'student_id': user.studentID,
+          'gender': user.gender,           // ✅ ADD
+          'level': user.academicLevel,     // ✅ ADD
         },
       );
-      return User.fromJson(response.data);
+      print('🔍 SIGNUP RESPONSE: ${response.data}');
+
+      // ✅ Check if signup failed
+      if (response.data['status'] == 'fail') {
+        throw Exception(response.data['message']);
+      }
+
+      // ✅ Get user_id then fetch full profile
+      final userId = response.data['user_id'];
+      final profileResponse = await _dio.get(
+        '${ApiConstants.getProfile}/$userId',
+      );
+      print('🔍 PROFILE RESPONSE: ${profileResponse.data}');
+      return User.fromJson(profileResponse.data['data']); // ← add ['data']
+
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -34,7 +50,21 @@ class AuthApiService {
           'password': password,
         },
       );
-      return User.fromJson(response.data);
+      print('🔍 LOGIN RESPONSE: ${response.data}');
+
+      // ✅ Check if login failed
+      if (response.data['status'] == 'fail') {
+        throw Exception(response.data['message']);
+      }
+
+      // ✅ Get user_id then fetch full profile
+      final userId = response.data['user_id'];
+      final profileResponse = await _dio.get(
+        '${ApiConstants.getProfile}/$userId',
+      );
+      print('🔍 PROFILE RESPONSE: ${profileResponse.data}');
+      return User.fromJson(profileResponse.data['data']); // ← add ['data']
+
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -46,7 +76,7 @@ class AuthApiService {
       final response = await _dio.get(
         '${ApiConstants.getProfile}/$userId',
       );
-      return User.fromJson(response.data);
+      return User.fromJson(response.data['data']);  // ← add ['data'];
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -59,20 +89,31 @@ class AuthApiService {
         '${ApiConstants.updateProfile}/${user.id}',
         data: user.toJson(),
       );
-      return User.fromJson(response.data);
+      print('🔍 UPDATE PROFILE RESPONSE: ${response.data}');
+
+      // ✅ backend returns no user data → fetch fresh profile
+      if (response.data['status'] == 'success') {
+        final profileResponse = await _dio.get(
+          '${ApiConstants.getProfile}/${user.id}',
+        );
+        return User.fromJson(profileResponse.data['data']);
+      }
+      throw Exception(response.data['message']);
+
     } on DioException catch (e) {
       throw _handleError(e);
     }
   }
 
-  // ✅ Update Profile Photo
+// ✅ Update Profile Photo
   Future<User> updateProfilePhoto(int userId, String imagePath) async {
     try {
       final response = await _dio.put(
         '${ApiConstants.updatePhoto}/$userId/image',
         data: {'profile_image': imagePath},
       );
-      return User.fromJson(response.data);
+      print('🔍 UPDATE PHOTO RESPONSE: ${response.data}'); // ← ADD
+      return User.fromJson(response.data['data']); // ← assume same for now
     } on DioException catch (e) {
       throw _handleError(e);
     }

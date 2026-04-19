@@ -10,10 +10,15 @@ class TaskApiService {
   Future<List<Task>> getTasks(int userId) async {
     try {
       final response = await _dio.get(
-        '${ApiConstants.tasks}/$userId',  // GET /tasks/:userId
+        '${ApiConstants.tasks}/$userId',
       );
-      final List data = response.data;
-      return data.map((json) => Task.fromJson(json)).toList();
+      print('🔍 TASKS RESPONSE: ${response.data}');
+      final List data = response.data['data'];
+      // ✅ pass userId manually to each task
+      return data.map((json) {
+        final task = Task.fromJson(json);
+        return task.copyWith(userId: userId); // ← inject real userId
+      }).toList();
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -23,10 +28,13 @@ class TaskApiService {
   Future<Task> addTask(Task task) async {
     try {
       final response = await _dio.post(
-        ApiConstants.tasks,               // POST /tasks
+        ApiConstants.tasks,
         data: task.toJson(),
       );
-      return Task.fromJson(response.data);
+      print('🔍 ADD TASK RESPONSE: ${response.data}');
+      // ✅ backend only returns task_id → build task manually
+      final taskId = response.data['task_id'];
+      return task.copyWith(id: taskId);
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -36,10 +44,15 @@ class TaskApiService {
   Future<Task> updateTask(Task task) async {
     try {
       final response = await _dio.put(
-        '${ApiConstants.tasks}/${task.id}', // PUT /tasks/:id
+        '${ApiConstants.tasks}/${task.id}',
         data: task.toJson(),
       );
-      return Task.fromJson(response.data);
+      print('🔍 UPDATE TASK RESPONSE: ${response.data}');
+      // ✅ backend returns no task data → return same task
+      if (response.data['status'] == 'success') {
+        return task; // ← return same task, already has correct data
+      }
+      throw Exception(response.data['message']);
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -60,9 +73,14 @@ class TaskApiService {
   Future<Task> toggleComplete(Task task) async {
     try {
       final response = await _dio.put(
-        '${ApiConstants.tasks}/${task.id}/complete', // PUT /tasks/:id/complete
+        '${ApiConstants.tasks}/${task.id}/complete',
       );
-      return Task.fromJson(response.data);
+      print('🔍 TOGGLE COMPLETE RESPONSE: ${response.data}');
+      // ✅ backend returns no task data → return toggled task
+      if (response.data['status'] == 'success') {
+        return task.copyWith(isCompleted: !task.isCompleted); // ← toggle locally
+      }
+      throw Exception(response.data['message']);
     } on DioException catch (e) {
       throw _handleError(e);
     }
