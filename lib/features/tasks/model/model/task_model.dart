@@ -60,4 +60,28 @@ class Task {
       userId: userId ?? this.userId,
     );
   }
+
+  //for api
+  factory Task.fromJson(Map<String, dynamic> json) {
+    return Task(
+      id: json['id'],
+      title: json['title'],
+      description: json['description'],
+      dueDate: DateTime.parse(json['due_date']),
+      priority: json['priority'],
+      isCompleted: json['is_completed'] == true || json['is_completed'] == 1,
+      userId: json['user_id'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'title': title,
+      'description': description,
+      'due_date': dueDate.toIso8601String().split('T')[0], // → "2026-04-20"
+      'priority': priority,
+      'is_completed': isCompleted,
+      'user_id': userId,
+    };
+  }
 }

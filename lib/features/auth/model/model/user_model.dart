@@ -65,4 +65,30 @@ class User {
       profilePhoto: profilePhoto ?? this.profilePhoto,
     );
   }
+
+  //for api
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(
+      id: json['id'],
+      fullName: json['full_name'],
+      gender: json['gender'],
+      email: json['email'],
+      password: json['password'] ?? '',
+      studentID: json['student_id'],
+      academicLevel: json['level'],
+      profilePhoto: json['profile_image'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'full_name': fullName,
+      'email': email,
+      'password': password,
+      'student_id': studentID,
+      'gender': gender,
+      'level': academicLevel,
+      'profile_image': profilePhoto,
+    };
+  }
 }

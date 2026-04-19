@@ -95,4 +95,13 @@ class TaskDatabaseService {
       whereArgs: [id],
     );
   }
+
+  Future<void> deleteAllTasksByUser(int userId) async {
+    final db = await database;
+    await db.delete(
+      'tasks',
+      where: 'userId = ?',
+      whereArgs: [userId],
+    );
+  }
 }

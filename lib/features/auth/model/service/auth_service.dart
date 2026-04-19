@@ -95,7 +95,7 @@ class AuthService {
   }
 
 // Update user
-  Future<void> updateUser(User user) async {
+  Future<User> updateUser(User user) async {
     final db = await database;
     await db.update(
       'users',
@@ -103,6 +103,7 @@ class AuthService {
       where: 'id = ?',
       whereArgs: [user.id],
     );
+    return user;
   }
 }
 
